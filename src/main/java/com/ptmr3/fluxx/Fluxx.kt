@@ -29,7 +29,7 @@ class Fluxx(application: Application) : Application.ActivityLifecycleCallbacks {
 
     override fun onActivityCreated(activity: Activity, bundle: Bundle?) {
         if (activity is FragmentActivity) {
-            registerReactionSubscriber(activity)
+            registerReactionSubscriber(activity).subscribeOn(Schedulers.newThread()).subscribe()
             (activity as FluxxView).registerStore()
             activity.supportFragmentManager.registerFragmentLifecycleCallbacks(object : FragmentManager.FragmentLifecycleCallbacks() {
                 override fun onFragmentAttached(fragmentManager: FragmentManager, fragment: Fragment, context: Context?) {
