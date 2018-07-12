@@ -1,1 +1,1 @@
-include ':fluxxap'
+include ':fluxxap', ':fluxx'
