@@ -2,7 +2,7 @@ package com.ptmr3.fluxx
 
 import android.support.v4.util.ArrayMap
 
-class FluxAction internal constructor(val type: String, val data: ArrayMap<String, Any>?) {
+class FluxxAction internal constructor(val type: String, val data: ArrayMap<String, Any>?) {
 
     operator fun <T> get(tag: String): T {
         return data!![tag] as T
@@ -18,17 +18,17 @@ class FluxAction internal constructor(val type: String, val data: ArrayMap<Strin
         if (this === other) {
             return true
         }
-        if (other !is FluxAction) {
+        if (other !is FluxxAction) {
             return false
         }
-        val fluxAction = other as FluxAction?
+        val fluxAction = other as FluxxAction?
         return if (type != fluxAction!!.type) {
             false
         } else !if (data != null) data != fluxAction.data else fluxAction.data != null
     }
 
     override fun toString(): String {
-        return "FluxAction{" + "mType='" + type + '\''.toString() + ", mData=" + data + '}'.toString()
+        return "FluxxAction{" + "Type='" + type + '\''.toString() + ", Data=" + data + '}'.toString()
     }
 
     class Builder {
@@ -55,11 +55,11 @@ class FluxAction internal constructor(val type: String, val data: ArrayMap<Strin
             return this
         }
 
-        fun build(): FluxAction {
+        fun build(): FluxxAction {
             if (type == null || type!!.isEmpty()) {
                 throw IllegalArgumentException("At least one key is required.")
             }
-            return FluxAction(type!!, data)
+            return FluxxAction(type!!, data)
         }
     }
 

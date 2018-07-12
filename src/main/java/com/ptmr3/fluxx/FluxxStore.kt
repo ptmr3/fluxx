@@ -5,38 +5,38 @@ import io.reactivex.schedulers.Schedulers
 import java.lang.reflect.Method
 import javax.xml.transform.OutputKeys.METHOD
 
-abstract class FluxActionCreator(private val mFluxInstance: Flux) {
-    /**
-     * This is the preferred method for posting actions to the subscription manager
-     * @param actionId
-     * @param data
-     */
-    protected fun emitAction(actionId: String, vararg data: Any) {
-        if (actionId.isEmpty()) {
+abstract class FluxxStore {
+
+    fun register() {
+        Fluxx.sInstance!!.registerActionSubscriber(this)
+    }
+
+    protected fun publishReaction(reactionId: String, vararg data: Any) {
+        if (reactionId.isEmpty()) {
             throw IllegalArgumentException("Type must not be empty")
         }
         if (data.size % 2 != 0) {
             throw IllegalArgumentException("Data must be a valid list of key,value pairs")
         }
-        val actionBuilder = FluxAction.type(actionId)
+        val reactionBuilder = FluxxReaction.type(reactionId)
         var i = 0
         while (i < data.size) {
             val key = data[i++] as String
             val value = data[i++]
-            actionBuilder.bundle(key, value)
+            reactionBuilder.bundle(key, value)
         }
-        val fluxAction = actionBuilder.build()
-        mFluxInstance.emitAction(fluxAction)
+        val fluxReaction = reactionBuilder.build()
+        //TODO null check on calls to instance to return error message
+        Fluxx.sInstance!!.getReactionSubscriberMethods(fluxReaction)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe { hashMap ->
                     val method = hashMap[METHOD] as Method
-                    val action = hashMap[Flux.ACTION] as com.ptmr3.fluxx.FluxAction
+                    val reaction = hashMap[Fluxx.REACTION] as FluxxReaction
                     method.isAccessible = true
                     try {
-                        method.invoke(hashMap[Flux.CLASS], action)
+                        method.invoke(hashMap[Fluxx.CLASS], reaction)
                     } catch (e: Exception) {
-
                     }
                 }
     }

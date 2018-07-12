@@ -7,35 +7,34 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentActivity
 import android.support.v4.app.FragmentManager
-import com.ptmr3.annotation.Action
-import com.ptmr3.annotation.Reaction
-import com.ptmr3.annotation.Store
+import com.ptmr3.fluxx.annotation.Action
+import com.ptmr3.fluxx.annotation.Reaction
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import java.lang.reflect.Method
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.Executors
 import javax.xml.transform.OutputKeys.METHOD
 
-class Flux(application: Application) : Application.ActivityLifecycleCallbacks {
-    var instance: Flux? = null
-        private set
+
+class Fluxx(application: Application) : Application.ActivityLifecycleCallbacks {
+    private val mActionSubscribers = ConcurrentHashMap<Any, Set<Method>>()
+    private val mReactionSubscribers = ConcurrentHashMap<Any, Set<Method>>()
 
     init {
-        instance = this
+        sInstance = this
         application.registerActivityLifecycleCallbacks(this)
     }
 
-    override fun onActivityCreated(activity: Activity, bundle: Bundle) {
+    override fun onActivityCreated(activity: Activity, bundle: Bundle?) {
         if (activity is FragmentActivity) {
             registerReactionSubscriber(activity)
+            (activity as FluxxView).registerStore()
             activity.supportFragmentManager.registerFragmentLifecycleCallbacks(object : FragmentManager.FragmentLifecycleCallbacks() {
                 override fun onFragmentAttached(fragmentManager: FragmentManager, fragment: Fragment, context: Context?) {
                     super.onFragmentAttached(fragmentManager, fragment, context)
-                    val classExecutor = Executors.newFixedThreadPool(1)
-                    classExecutor.execute(Thread(Runnable { registerReactionSubscriber(fragment) }))
+                    registerReactionSubscriber(fragment).subscribeOn(Schedulers.newThread()).subscribe()
                 }
 
                 override fun onFragmentDetached(fragmentManager: FragmentManager, fragment: Fragment) {
@@ -45,8 +44,7 @@ class Flux(application: Application) : Application.ActivityLifecycleCallbacks {
 
                 override fun onFragmentResumed(fragmentManager: FragmentManager, fragment: Fragment) {
                     super.onFragmentResumed(fragmentManager, fragment)
-                    val classExecutor = Executors.newFixedThreadPool(1)
-                    classExecutor.execute(Thread(Runnable { registerReactionSubscriber(fragment) }))
+                    registerReactionSubscriber(fragment).subscribeOn(Schedulers.newThread()).subscribe()
                 }
 
                 override fun onFragmentPaused(fragmentManager: FragmentManager, fragment: Fragment) {
@@ -71,7 +69,7 @@ class Flux(application: Application) : Application.ActivityLifecycleCallbacks {
 
     override fun onActivityStopped(activity: Activity) {}
 
-    fun emitAction(action: FluxAction): Observable<HashMap<String, Any>> {
+    fun getActionSubscriberMethods(action: FluxxAction): Observable<HashMap<String, Any>> {
         return Observable.create { observableEmitter ->
             for (parentClass in mActionSubscribers.keys) {
                 for (method in mActionSubscribers[parentClass].orEmpty()) {
@@ -88,15 +86,15 @@ class Flux(application: Application) : Application.ActivityLifecycleCallbacks {
         }
     }
 
-    fun emitReaction(fluxReaction: FluxReaction): Observable<HashMap<String, Any>> {
+    fun getReactionSubscriberMethods(reaction: FluxxReaction): Observable<HashMap<String, Any>> {
         return Observable.create { observableEmitter ->
             for (parentClass in mReactionSubscribers.keys) {
                 for (method in mReactionSubscribers[parentClass].orEmpty()) {
-                    if (fluxReaction.type == method.getAnnotation(Reaction::class.java).reactionType) {
+                    if (reaction.type == method.getAnnotation(Reaction::class.java).reactionType) {
                         val map = HashMap<String, Any>()
                         map[METHOD] = method
                         map[CLASS] = parentClass
-                        map[REACTION] = fluxReaction
+                        map[REACTION] = reaction
                         observableEmitter.onNext(map)
                     }
                 }
@@ -111,7 +109,7 @@ class Flux(application: Application) : Application.ActivityLifecycleCallbacks {
                 val classMethods = HashSet<Method>()
                 for (method in parentClass.javaClass.declaredMethods) {
                     val paramTypes = method.parameterTypes
-                    if (method.isAnnotationPresent(Action::class.java) && paramTypes.size == 1 && paramTypes[0] == FluxAction::class.java) {
+                    if (method.isAnnotationPresent(Action::class.java) && paramTypes.size == 1 && paramTypes[0] == FluxxAction::class.java) {
                         classMethods.add(method)
                     }
                 }
@@ -121,21 +119,23 @@ class Flux(application: Application) : Application.ActivityLifecycleCallbacks {
     }
 
     fun registerActionSubscriber(storeClass: Any) {
-        if (storeClass.javaClass.isAnnotationPresent(Store::class.java)) {
-            methodsWithActionAnnotation(storeClass).subscribeOn(Schedulers.newThread())
+        if (storeClass is FluxxStore) {
+            methodsWithActionAnnotation(storeClass).subscribeOn(Schedulers.newThread()).subscribe()
         }
     }
 
-    fun registerReactionSubscriber(viewClass: Any?) {
-        if (!mReactionSubscribers.containsKey(viewClass)) {
-            val classMethods = HashSet<Method>()
-            for (method in viewClass!!.javaClass.declaredMethods) {
-                val paramTypes = method.parameterTypes
-                if (method.isAnnotationPresent(Reaction::class.java) && paramTypes.size == 1 && paramTypes[0] == FluxReaction::class.java) {
-                    classMethods.add(method)
+    fun registerReactionSubscriber(viewClass: Any?) : Completable {
+        return Completable.fromAction {
+            if (!mReactionSubscribers.containsKey(viewClass)) {
+                val classMethods = HashSet<Method>()
+                for (method in viewClass!!.javaClass.declaredMethods) {
+                    val paramTypes = method.parameterTypes
+                    if (method.isAnnotationPresent(Reaction::class.java) && paramTypes.size == 1 && paramTypes[0] == FluxxReaction::class.java) {
+                        classMethods.add(method)
+                    }
                 }
+                mReactionSubscribers[viewClass] = classMethods
             }
-            mReactionSubscribers[viewClass] = classMethods
         }
     }
 
@@ -146,8 +146,8 @@ class Flux(application: Application) : Application.ActivityLifecycleCallbacks {
     }
 
     companion object {
-        private val mActionSubscribers = ConcurrentHashMap<Any, Set<Method>>()
-        private val mReactionSubscribers = ConcurrentHashMap<Any, Set<Method>>()
+        var sInstance: Fluxx? = null
+            private set
         const val ACTION = "action"
         const val CLASS = "class"
         const val REACTION = "reaction"
