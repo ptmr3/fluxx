@@ -28,7 +28,7 @@ class FluxxReaction internal constructor(val type: String, val data: ArrayMap<St
     }
 
     override fun toString(): String {
-        return "FluxxAction{" + "Type='" + type + '\''.toString() + ", Data=" + data + '}'.toString()
+        return "FluxxReaction{" + "Type='" + type + '\''.toString() + ", Data=" + data + '}'.toString()
     }
 
     class Builder {
