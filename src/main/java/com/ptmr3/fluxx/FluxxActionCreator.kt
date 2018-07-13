@@ -26,13 +26,9 @@ abstract class FluxxActionCreator(private val mFluxx: Fluxx) {
             actionBuilder.bundle(key, value)
         }
         val fluxAction = actionBuilder.build()
-        val workerScheduler = when {
-            queue!! -> Schedulers.trampoline()
-            else -> Schedulers.newThread()
-        }
         //TODO null check on calls to instance to return error message
         mFluxx.getActionSubscriberMethods(fluxAction)
-                .subscribeOn(workerScheduler)
+                .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe { hashMap ->
                     val method = hashMap[METHOD] as Method
