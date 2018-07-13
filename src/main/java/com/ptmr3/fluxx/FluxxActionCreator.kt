@@ -5,14 +5,13 @@ import io.reactivex.schedulers.Schedulers
 import java.lang.reflect.Method
 import javax.xml.transform.OutputKeys.METHOD
 
-abstract class FluxxActionCreator {
+abstract class FluxxActionCreator(private val mFluxx: Fluxx) {
     /**
      * This is the preferred method for publishing actions
      * @param actionId
      * @param data
-     * @param queue
      */
-    protected fun publishAction(actionId: String, vararg data: Any, queue: Boolean? = false) {
+    protected fun publishAction(actionId: String, vararg data: Any) {
         if (actionId.isEmpty()) {
             throw IllegalArgumentException("Type must not be empty")
         }
@@ -27,13 +26,9 @@ abstract class FluxxActionCreator {
             actionBuilder.bundle(key, value)
         }
         val fluxAction = actionBuilder.build()
-        val workerScheduler = when {
-            queue!! -> Schedulers.trampoline()
-            else -> Schedulers.newThread()
-        }
         //TODO null check on calls to instance to return error message
-        Fluxx.sInstance!!.getActionSubscriberMethods(fluxAction)
-                .subscribeOn(workerScheduler)
+        mFluxx.getActionSubscriberMethods(fluxAction)
+                .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe { hashMap ->
                     val method = hashMap[METHOD] as Method

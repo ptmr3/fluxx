@@ -7,8 +7,8 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentActivity
 import android.support.v4.app.FragmentManager
-import com.ptmr3.fluxx.annotation.Action
-import com.ptmr3.fluxx.annotation.Reaction
+import com.ptmr3.fluxxap.Action
+import com.ptmr3.fluxxap.Reaction
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
@@ -30,7 +30,7 @@ class Fluxx(application: Application) : Application.ActivityLifecycleCallbacks {
     override fun onActivityCreated(activity: Activity, bundle: Bundle?) {
         if (activity is FragmentActivity) {
             registerReactionSubscriber(activity).subscribeOn(Schedulers.newThread()).subscribe()
-            (activity as FluxxView).registerStore()
+            (activity as FluxxActionCaller).registerStore()
             activity.supportFragmentManager.registerFragmentLifecycleCallbacks(object : FragmentManager.FragmentLifecycleCallbacks() {
                 override fun onFragmentAttached(fragmentManager: FragmentManager, fragment: Fragment, context: Context?) {
                     super.onFragmentAttached(fragmentManager, fragment, context)

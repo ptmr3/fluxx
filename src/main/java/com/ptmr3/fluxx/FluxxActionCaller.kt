@@ -1,5 +1,5 @@
 package com.ptmr3.fluxx
 
-interface FluxxView {
+interface FluxxActionCaller {
     fun registerStore()
 }
