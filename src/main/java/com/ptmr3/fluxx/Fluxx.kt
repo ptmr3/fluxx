@@ -7,8 +7,8 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentActivity
 import android.support.v4.app.FragmentManager
-import com.ptmr3.fluxxap.Action
-import com.ptmr3.fluxxap.Reaction
+import com.ptmr3.fluxx.annotation.Action
+import com.ptmr3.fluxx.annotation.Reaction
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
