@@ -1,8 +1,7 @@
 package com.ptmr3.fluxx
 
-import android.support.v4.util.ArrayMap
 
-class FluxxAction internal constructor(val type: String, val data: ArrayMap<String, Any>?) {
+class FluxxAction internal constructor(val type: String, val data: HashMap<String, Any>?) {
 
     operator fun <T> get(tag: String): T {
         return data!![tag] as T
@@ -33,14 +32,14 @@ class FluxxAction internal constructor(val type: String, val data: ArrayMap<Stri
 
     class Builder {
         private var type: String? = null
-        private var data: ArrayMap<String, Any>? = null
+        private var data: HashMap<String, Any>? = null
 
         internal fun with(type: String?): Builder {
             if (type == null) {
                 throw IllegalArgumentException("Type may not be null.")
             }
             this.type = type
-            this.data = ArrayMap()
+            this.data = HashMap()
             return this
         }
 

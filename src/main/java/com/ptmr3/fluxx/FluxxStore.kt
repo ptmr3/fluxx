@@ -1,13 +1,16 @@
 package com.ptmr3.fluxx
 
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import java.lang.reflect.Method
 import javax.xml.transform.OutputKeys.METHOD
 
 abstract class FluxxStore {
 
-    fun register() {
+    init {
+        registerActionSubscriber()
+    }
+
+    private fun registerActionSubscriber() {
         Fluxx.sInstance!!.registerActionSubscriber(this)
     }
 
@@ -28,13 +31,16 @@ abstract class FluxxStore {
         val fluxReaction = reactionBuilder.build()
         Fluxx.sInstance!!.getReactionSubscriberMethods(fluxReaction)
                 .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe { hashMap ->
                     val method = hashMap[METHOD] as Method
                     val reaction = hashMap[Fluxx.REACTION] as FluxxReaction
                     method.isAccessible = true
                     try {
-                        method.invoke(hashMap[Fluxx.CLASS], reaction)
+                        if (method.genericParameterTypes.isEmpty()) {
+                            method.invoke(hashMap[Fluxx.CLASS])
+                        } else {
+                            method.invoke(hashMap[Fluxx.CLASS], reaction)
+                        }
                     } catch (e: Exception) {
                     }
                 }

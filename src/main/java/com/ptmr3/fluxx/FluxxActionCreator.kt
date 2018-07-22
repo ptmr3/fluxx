@@ -1,6 +1,5 @@
 package com.ptmr3.fluxx
 
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import java.lang.reflect.Method
 import javax.xml.transform.OutputKeys.METHOD
@@ -29,7 +28,6 @@ abstract class FluxxActionCreator {
         //TODO null check on calls to instance to return error message
         Fluxx.sInstance!!.getActionSubscriberMethods(fluxAction)
                 .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe { hashMap ->
                     val method = hashMap[METHOD] as Method
                     val action = hashMap[Fluxx.ACTION] as FluxxAction

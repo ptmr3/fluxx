@@ -21,35 +21,17 @@ allprojects {
     }
 }
 
-apply plugin: 'com.android.library'
+apply plugin: 'java-library'
 apply plugin: 'com.github.dcendents.android-maven'
-apply plugin: 'kotlin-android'
+apply plugin: 'kotlin'
 
 group='com.github.ptmr3'
-
-android {
-    compileSdkVersion 27
-
-    defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 27
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-    }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-    }
-}
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support:design:27.1.1'
     implementation 'com.android.support:support-v4:27.1.1'
-    implementation 'io.reactivex.rxjava2:rxandroid:2.0.2'
     implementation 'io.reactivex.rxjava2:rxkotlin:2.2.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
