@@ -5,10 +5,10 @@ import io.reactivex.schedulers.Schedulers
 import java.lang.reflect.Method
 import javax.xml.transform.OutputKeys.METHOD
 
-abstract class FluxxStore(private val mFluxx: Fluxx) {
+abstract class FluxxStore {
 
-    fun register() {
-        mFluxx.registerActionSubscriber(this)
+    fun registerActionSubscriber(actionSubscriberClass: Any) {
+        Fluxx.sInstance!!.registerActionSubscriber(actionSubscriberClass)
     }
 
     protected fun publishReaction(reactionId: String, vararg data: Any) {
@@ -26,7 +26,7 @@ abstract class FluxxStore(private val mFluxx: Fluxx) {
             reactionBuilder.bundle(key, value)
         }
         val fluxReaction = reactionBuilder.build()
-        mFluxx.getReactionSubscriberMethods(fluxReaction)
+        Fluxx.sInstance!!.getReactionSubscriberMethods(fluxReaction)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe { hashMap ->

@@ -5,7 +5,7 @@ import io.reactivex.schedulers.Schedulers
 import java.lang.reflect.Method
 import javax.xml.transform.OutputKeys.METHOD
 
-abstract class FluxxActionCreator(private val mFluxx: Fluxx) {
+abstract class FluxxActionCreator {
     /**
      * This is the preferred method for publishing actions
      * @param actionId
@@ -27,7 +27,7 @@ abstract class FluxxActionCreator(private val mFluxx: Fluxx) {
         }
         val fluxAction = actionBuilder.build()
         //TODO null check on calls to instance to return error message
-        mFluxx.getActionSubscriberMethods(fluxAction)
+        Fluxx.sInstance!!.getActionSubscriberMethods(fluxAction)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe { hashMap ->
