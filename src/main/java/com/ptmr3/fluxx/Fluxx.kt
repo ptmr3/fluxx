@@ -9,52 +9,14 @@ import java.lang.reflect.Method
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import javax.xml.transform.OutputKeys.METHOD
-import android.R.attr.entries
-import android.app.Application
-import android.util.Log
-import dalvik.system.DexFile
-import dalvik.system.PathClassLoader
-import java.io.IOException
 
 
-class Fluxx(private val mApplication: Application) {
+class Fluxx {
     private val mActionSubscribers = ConcurrentHashMap<Any, Set<Method>>()
     private val mReactionSubscribers = ConcurrentHashMap<Any, Set<Method>>()
 
     init {
         sInstance = this
-        getClassesOfPackage()
-    }
-
-    private fun getClassesOfPackage() {
-        try {
-            val classLoader = mApplication.classLoader as PathClassLoader
-            val packageCodePath = mApplication.packageCodePath
-            val df = DexFile(packageCodePath)
-            val iter = df.entries()
-            df.entries().toList().map {
-
-                val className = iter.nextElement()
-                if (className.contains(mApplication.packageName)) {
-                    val clazz = classLoader.loadClass(className)
-                    val superclassName = clazz.superclass?.simpleName.toString()
-                    if (superclassName.contains("FluxxStore")) {
-                        registerReactionSubscriber(clazz)
-                    }
-                    clazz.interfaces.filter {it.simpleName.toString().contains("Fluxx")}
-                                .map {
-                                    if (it.simpleName.toString().contains("FluxxReactionSubscriber")) {
-                                        registerReactionSubscriber(clazz)
-                                    }
-                                    if (it.simpleName.toString().contains("FluxxStore")) {
-                                        registerActionSubscriber(clazz)
-                                    }
-                                }
-                    }
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
     }
 
     fun getActionSubscriberMethods(action: FluxxAction): Observable<HashMap<String, Any>> {
@@ -124,13 +86,11 @@ class Fluxx(private val mApplication: Application) {
     fun registerActionSubscriber(storeClass: Any) {
         if (storeClass is FluxxStore) {
             methodsWithActionAnnotation(storeClass).subscribeOn(Schedulers.newThread()).subscribe()
-            Log.i("SCAN", storeClass.toString())
         }
     }
 
     fun registerReactionSubscriber(viewClass: Any) {
         methodsWithReactionAnnotation(viewClass).subscribeOn(Schedulers.newThread()).subscribe()
-        Log.i("SCAN", viewClass.toString())
     }
 
     fun unregisterReactionSubscriber(view: Any) {
@@ -141,7 +101,7 @@ class Fluxx(private val mApplication: Application) {
 
     companion object {
         var sInstance: Fluxx? = null
-            get() = field?.let { it }
+            get() = field?.let { it } ?: run { Fluxx() }
             private set
         const val ACTION = "action"
         const val CLASS = "class"

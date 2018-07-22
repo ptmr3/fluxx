@@ -7,8 +7,8 @@ import javax.xml.transform.OutputKeys.METHOD
 
 abstract class FluxxStore {
 
-    fun registerActionSubscriber(actionSubscriberClass: Any) {
-        Fluxx.sInstance!!.registerActionSubscriber(actionSubscriberClass)
+    fun register() {
+        Fluxx.sInstance!!.registerActionSubscriber(this)
     }
 
     protected fun publishReaction(reactionId: String, vararg data: Any) {
