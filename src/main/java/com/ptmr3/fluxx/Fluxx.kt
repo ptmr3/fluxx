@@ -10,7 +10,6 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import javax.xml.transform.OutputKeys.METHOD
 
-
 class Fluxx {
     private val mActionSubscribers = ConcurrentHashMap<Any, Set<Method>>()
     private val mReactionSubscribers = ConcurrentHashMap<Any, Set<Method>>()
@@ -73,8 +72,7 @@ class Fluxx {
             if (!mReactionSubscribers.containsKey(parentClass)) {
                 val classMethods = HashSet<Method>()
                 parentClass.javaClass.declaredMethods.map {
-                    val paramTypes = it.parameterTypes
-                    if (it.isAnnotationPresent(Reaction::class.java) && paramTypes.size == 1 && paramTypes[0] == FluxxReaction::class.java) {
+                    if (it.isAnnotationPresent(Reaction::class.java)) {
                         classMethods.add(it)
                     }
                 }

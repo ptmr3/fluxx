@@ -28,10 +28,7 @@ apply plugin: 'kotlin'
 group='com.github.ptmr3'
 
 dependencies {
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.android.support:appcompat-v7:27.1.1'
-    implementation 'com.android.support:design:27.1.1'
-    implementation 'com.android.support:support-v4:27.1.1'
-    implementation 'io.reactivex.rxjava2:rxkotlin:2.2.0'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    api fileTree(include: ['*.jar'], dir: 'libs')
+    api 'io.reactivex.rxjava2:rxkotlin:2.2.0'
+    api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
