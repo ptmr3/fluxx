@@ -1,7 +1,10 @@
 package com.ptmr3.fluxx
 
+import com.ptmr3.fluxx.Fluxx.Companion.ACTION
+import com.ptmr3.fluxx.Fluxx.Companion.CLASS
 import io.reactivex.schedulers.Schedulers
 import java.lang.reflect.Method
+import java.util.concurrent.Executors
 import javax.xml.transform.OutputKeys.METHOD
 
 abstract class FluxxActionCreator {
@@ -24,19 +27,15 @@ abstract class FluxxActionCreator {
             val value = data[i++]
             actionBuilder.bundle(key, value)
         }
-        val fluxAction = actionBuilder.build()
-        //TODO null check on calls to instance to return error message
-        Fluxx.sInstance!!.getActionSubscriberMethods(fluxAction)
-                .subscribeOn(Schedulers.newThread())
-                .subscribe { hashMap ->
+        val currentThread = Schedulers.from(Executors.newSingleThreadExecutor())
+        Fluxx.sInstance!!.getActionSubscriberMethods(actionBuilder.build())
+                .subscribeOn(Schedulers.newThread()).observeOn(currentThread)
+                .blockingSubscribe { hashMap ->
                     val method = hashMap[METHOD] as Method
-                    val action = hashMap[Fluxx.ACTION] as FluxxAction
                     method.isAccessible = true
                     try {
-                        method.invoke(hashMap[Fluxx.CLASS], action)
-                    } catch (e: Exception) {
-
-                    }
+                        method.invoke(hashMap[CLASS], hashMap[ACTION])
+                    } catch (e: Exception) { }
                 }
     }
 }

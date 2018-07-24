@@ -1,7 +1,10 @@
 package com.ptmr3.fluxx
 
+import com.ptmr3.fluxx.Fluxx.Companion.CLASS
+import com.ptmr3.fluxx.Fluxx.Companion.REACTION
 import io.reactivex.schedulers.Schedulers
 import java.lang.reflect.Method
+import java.util.concurrent.Executors
 import javax.xml.transform.OutputKeys.METHOD
 
 abstract class FluxxStore {
@@ -28,21 +31,19 @@ abstract class FluxxStore {
             val value = data[i++]
             reactionBuilder.bundle(key, value)
         }
-        val fluxReaction = reactionBuilder.build()
-        Fluxx.sInstance!!.getReactionSubscriberMethods(fluxReaction)
-                .subscribeOn(Schedulers.newThread())
-                .subscribe { hashMap ->
+        val currentThread = Schedulers.from(Executors.newSingleThreadExecutor())
+        Fluxx.sInstance!!.getReactionSubscriberMethods(reactionBuilder.build())
+                .subscribeOn(Schedulers.newThread()).observeOn(currentThread)
+                .blockingSubscribe { hashMap ->
                     val method = hashMap[METHOD] as Method
-                    val reaction = hashMap[Fluxx.REACTION] as FluxxReaction
                     method.isAccessible = true
                     try {
                         if (method.genericParameterTypes.isEmpty()) {
-                            method.invoke(hashMap[Fluxx.CLASS])
+                            method.invoke(hashMap[CLASS])
                         } else {
-                            method.invoke(hashMap[Fluxx.CLASS], reaction)
+                            method.invoke(hashMap[CLASS], hashMap[REACTION])
                         }
-                    } catch (e: Exception) {
-                    }
+                    } catch (e: Exception) { }
                 }
     }
 }
