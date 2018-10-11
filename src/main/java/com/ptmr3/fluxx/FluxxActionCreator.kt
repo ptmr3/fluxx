@@ -2,10 +2,10 @@ package com.ptmr3.fluxx
 
 import com.ptmr3.fluxx.Fluxx.Companion.ACTION
 import com.ptmr3.fluxx.Fluxx.Companion.CLASS
+import com.ptmr3.fluxx.Fluxx.Companion.METHOD
 import io.reactivex.schedulers.Schedulers
 import java.lang.reflect.Method
 import java.util.concurrent.Executors
-import javax.xml.transform.OutputKeys.METHOD
 
 abstract class FluxxActionCreator {
     private val mFluxxLog = FluxxLog.instance
@@ -15,9 +15,6 @@ abstract class FluxxActionCreator {
      * @param data
      */
     protected fun publishAction(actionId: String, vararg data: Any) {
-        if (actionId.isEmpty()) {
-            throw IllegalArgumentException("Type must not be empty")
-        }
         if (data.size % 2 != 0) {
             throw IllegalArgumentException("Data must be a valid list of key,value pairs")
         }

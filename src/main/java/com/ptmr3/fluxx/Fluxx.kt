@@ -8,7 +8,6 @@ import io.reactivex.schedulers.Schedulers
 import java.lang.reflect.Method
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import javax.xml.transform.OutputKeys.METHOD
 
 class Fluxx {
     private val mActionSubscribers = ConcurrentHashMap<Any, Set<Method>>()
@@ -97,6 +96,7 @@ class Fluxx {
         val instance: Fluxx by lazy { Fluxx() }
         const val ACTION = "action"
         const val CLASS = "class"
+        const val METHOD = "method"
         const val REACTION = "reaction"
     }
 }
