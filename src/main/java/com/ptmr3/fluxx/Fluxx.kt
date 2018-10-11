@@ -14,10 +14,6 @@ class Fluxx {
     private val mActionSubscribers = ConcurrentHashMap<Any, Set<Method>>()
     private val mReactionSubscribers = ConcurrentHashMap<Any, Set<Method>>()
 
-    init {
-        sInstance = this
-    }
-
     fun getActionSubscriberMethods(action: FluxxAction): Observable<HashMap<String, Any>> {
         return Observable.create { observableEmitter ->
             mActionSubscribers.keys.map { parentClass ->
@@ -98,9 +94,7 @@ class Fluxx {
     }
 
     companion object {
-        var sInstance: Fluxx? = null
-            get() = field?.let { it } ?: run { Fluxx() }
-            private set
+        val instance: Fluxx by lazy { Fluxx() }
         const val ACTION = "action"
         const val CLASS = "class"
         const val REACTION = "reaction"
