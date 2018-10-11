@@ -2,10 +2,10 @@ package com.ptmr3.fluxx
 
 interface FluxxReactionSubscriber {
     fun registerReactionSubscriber(reactionSubscriberClass: Any) {
-        Fluxx.sInstance!!.registerReactionSubscriber(reactionSubscriberClass)
+        Fluxx.instance.registerReactionSubscriber(reactionSubscriberClass)
     }
 
     fun unregisterReactionSubscriber(reactionSubscriberClass: Any) {
-        Fluxx.sInstance!!.unregisterReactionSubscriber(reactionSubscriberClass)
+        Fluxx.instance.unregisterReactionSubscriber(reactionSubscriberClass)
     }
 }
