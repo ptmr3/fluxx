@@ -2,7 +2,7 @@
 
 ------
 
-##### Fluxx is simple library created to empower Java and Kotlin developers in their journey for greatness. Their are many different architectural styles that can be used, but none as efficient as Fluxx (** Obvious bias here... ). 
+##### Fluxx is simple library created to empower Java and Kotlin developers in their journey for greatness. There are many different architectural styles that can be used, but none as efficient as Fluxx (** Obvious bias here... ). 
 
 
 
