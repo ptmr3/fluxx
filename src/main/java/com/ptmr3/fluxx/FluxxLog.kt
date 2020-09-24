@@ -8,7 +8,7 @@ class FluxxLog {
     }
 
     fun print(message: String) {
-        println(ROBUST_TAG + message)
+        if (mDebug) { println(ROBUST_TAG + message) }
     }
 
     companion object {
