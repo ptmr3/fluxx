@@ -3,7 +3,7 @@ package com.ptmr3.fluxx
 import com.ptmr3.fluxx.Fluxx.Companion.ACTION
 import com.ptmr3.fluxx.Fluxx.Companion.CLASS
 import com.ptmr3.fluxx.Fluxx.Companion.METHOD
-import io.reactivex.schedulers.Schedulers
+import io.reactivex.rxjava3.schedulers.Schedulers
 import java.lang.reflect.Method
 import java.util.concurrent.Executors
 
