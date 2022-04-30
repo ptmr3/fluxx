@@ -1,6 +1,6 @@
 package com.ptmr3.fluxx
 
-interface FluxxReactionSubscriber {
+interface ReactionSubscriber {
     fun registerReactionSubscriber(reactionSubscriberClass: Any) {
         Fluxx.instance.registerReactionSubscriber(reactionSubscriberClass)
     }
