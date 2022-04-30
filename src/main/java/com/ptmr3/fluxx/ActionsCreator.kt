@@ -7,7 +7,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers
 import java.lang.reflect.Method
 import java.util.concurrent.Executors
 
-abstract class FluxxActionCreator {
+abstract class ActionsCreator {
     private val mFluxxLog = FluxxLog.instance
     /**
      * This is the preferred method for publishing actions
