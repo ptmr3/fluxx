@@ -23,7 +23,7 @@ abstract class ActionsCreator {
         var i = 0
         while (i < data.size) { dataHashMap[data[i++] as String] = data[i++] }
         val currentThread = Schedulers.from(Executors.newSingleThreadExecutor())
-        Fluxx.instance.getActionSubscriberMethods(FluxxAction(actionId, dataHashMap))
+        Fluxx.instance.getActionSubscriberMethods(Action(actionId, dataHashMap))
             .subscribeOn(Schedulers.io()).observeOn(currentThread)
             .blockingSubscribe { hashMap ->
                 val method = hashMap[METHOD] as Method
@@ -44,7 +44,7 @@ abstract class ActionsCreator {
         val dataHashMap = HashMap<String, Any>()
         var i = 0
         while (i < data.size) { dataHashMap[data[i++] as String] = data[i++] }
-        Fluxx.instance.getActionSubscriberMethods(FluxxAction(actionId, dataHashMap))
+        Fluxx.instance.getActionSubscriberMethods(Action(actionId, dataHashMap))
             .flatMap {
                 Observable.just(it)
                     .subscribeOn(Schedulers.io())
