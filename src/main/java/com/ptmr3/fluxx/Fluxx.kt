@@ -1,6 +1,7 @@
 package com.ptmr3.fluxx
 
 import com.ptmr3.fluxx.annotation.Action
+import com.ptmr3.fluxx.annotation.FailureReaction
 import com.ptmr3.fluxx.annotation.Reaction
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Observable
@@ -47,6 +48,23 @@ class Fluxx {
         }
     }
 
+    fun getFailureReactionSubscriberMethods(reaction: FluxxFailureReaction): Observable<HashMap<String, Any>> {
+        return Observable.create { observableEmitter ->
+            mReactionSubscribers.keys.map { parentClass ->
+                mReactionSubscribers[parentClass].orEmpty().map {
+                    if (reaction.type == it.getAnnotation(FailureReaction::class.java).reactionType) {
+                        val map = HashMap<String, Any>()
+                        map[METHOD] = it
+                        map[CLASS] = parentClass
+                        map[FAILURE_REACTION] = reaction
+                        observableEmitter.onNext(map)
+                    }
+                }
+            }
+            observableEmitter.onComplete()
+        }
+    }
+
     private fun methodsWithActionAnnotation(parentClass: Any): Completable {
         return Completable.fromAction {
             if (!mActionSubscribers.containsKey(parentClass)) {
@@ -76,6 +94,20 @@ class Fluxx {
         }
     }
 
+    private fun methodsWithFailureReactionAnnotation(parentClass: Any): Completable {
+        return Completable.fromAction {
+            if (!mReactionSubscribers.containsKey(parentClass)) {
+                val classMethods = HashSet<Method>()
+                parentClass.javaClass.declaredMethods.map {
+                    if (it.isAnnotationPresent(FailureReaction::class.java)) {
+                        classMethods.add(it)
+                    }
+                }
+                mReactionSubscribers[parentClass] = classMethods
+            }
+        }
+    }
+
     fun registerActionSubscriber(storeClass: Any) {
         if (storeClass is FluxxStore) {
             methodsWithActionAnnotation(storeClass).subscribeOn(Schedulers.newThread()).subscribe()
@@ -84,6 +116,7 @@ class Fluxx {
 
     fun registerReactionSubscriber(viewClass: Any) {
         methodsWithReactionAnnotation(viewClass).subscribeOn(Schedulers.newThread()).subscribe()
+        methodsWithFailureReactionAnnotation(viewClass).subscribeOn(Schedulers.newThread()).subscribe()
     }
 
     fun unregisterReactionSubscriber(view: Any) {
@@ -98,5 +131,6 @@ class Fluxx {
         const val CLASS = "class"
         const val METHOD = "method"
         const val REACTION = "reaction"
+        const val FAILURE_REACTION = "failureReaction"
     }
 }
