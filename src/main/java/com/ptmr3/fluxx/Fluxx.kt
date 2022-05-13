@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap
 class Fluxx {
     private val mActionSubscribers = ConcurrentHashMap<Any, Set<Method>>()
     private val mReactionSubscribers = ConcurrentHashMap<Any, Set<Method>>()
+    private val mFailureReactionSubscribers = ConcurrentHashMap<Any, Set<Method>>()
 
     fun getActionSubscriberMethods(action: FluxxAction): Observable<HashMap<String, Any>> {
         return Observable.create { observableEmitter ->
@@ -48,15 +49,15 @@ class Fluxx {
         }
     }
 
-    fun getFailureReactionSubscriberMethods(reaction: FluxxFailureReaction): Observable<HashMap<String, Any>> {
+    fun getFailureReactionSubscriberMethods(failureReaction: FluxxFailureReaction): Observable<HashMap<String, Any>> {
         return Observable.create { observableEmitter ->
-            mReactionSubscribers.keys.map { parentClass ->
-                mReactionSubscribers[parentClass].orEmpty().map {
-                    if (reaction.type == it.getAnnotation(FailureReaction::class.java).reactionType) {
+            mFailureReactionSubscribers.keys.map { parentClass ->
+                mFailureReactionSubscribers[parentClass].orEmpty().map {
+                    if (failureReaction.type == it.getAnnotation(FailureReaction::class.java).failureReactionType) {
                         val map = HashMap<String, Any>()
                         map[METHOD] = it
                         map[CLASS] = parentClass
-                        map[FAILURE_REACTION] = reaction
+                        map[FAILURE_REACTION] = failureReaction
                         observableEmitter.onNext(map)
                     }
                 }
@@ -96,14 +97,14 @@ class Fluxx {
 
     private fun methodsWithFailureReactionAnnotation(parentClass: Any): Completable {
         return Completable.fromAction {
-            if (!mReactionSubscribers.containsKey(parentClass)) {
+            if (!mFailureReactionSubscribers.containsKey(parentClass)) {
                 val classMethods = HashSet<Method>()
                 parentClass.javaClass.declaredMethods.map {
                     if (it.isAnnotationPresent(FailureReaction::class.java)) {
                         classMethods.add(it)
                     }
                 }
-                mReactionSubscribers[parentClass] = classMethods
+                mFailureReactionSubscribers[parentClass] = classMethods
             }
         }
     }
@@ -122,6 +123,9 @@ class Fluxx {
     fun unregisterReactionSubscriber(view: Any) {
         if (mReactionSubscribers.containsKey(view)) {
             mReactionSubscribers.remove(view)
+        }
+        if (mFailureReactionSubscribers.contains(view)) {
+            mFailureReactionSubscribers.remove(view)
         }
     }
 
